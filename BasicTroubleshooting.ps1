@@ -13,25 +13,38 @@
 # Include Application Info Module
 . .\GetApplicationInfo.ps1
 
-
+# Create an array to accumulate the report data.
+$output = @()
 
 # Run network troubleshooting, call the Get-NetworkDiagnostics function from NetworkTroubleshooting.ps1
 Write-Host 'Conducting Network Troubleshooting'
 $networkDiagnosticsReport = Get-NetworkInfo
+$output += "===== Network Diagnostics Report ====="
+$output += $networkDiagnosticsReport
+$output += "" # for a blank line
 
 # Run session information gathering, call the Get-SessionInfo function from GetSessionInfo.ps1
 Write-Host 'Gathering Session Information'
 $sessionInfoReport = Get-SessionInfo
+$output += "===== Session Information Report ====="
+$output += $sessionInfoReport
+$output += ""
 
 # Run hardware information gathering, call the Get-HardwareInfo function from GetHardwareInfo.ps1
 Write-Host 'Gathering Hardware Information'
 $hardwareInfoReport = Get-HardwareInfo
+$output += "===== Hardware Information Report ====="
+$output += $hardwareInfoReport
+$output += ""
 
 # Run application information gathering, call the Get-ApplicationInfo function from GetApplicationInfo.ps1
 Write-Host 'Gathering Application and Service Information'
 $appInfoReport = Get-ApplicationInfo
+$output += "===== Application and Service Information Report ====="
+$output += $appInfoReport
+$output += ""
 
-# Create a C:\Scripts\ folder if does not already exist, and populates with output.
+# Create a C:\Scripts\ folder if does not already exist.
 if (-not (Test-Path -Path "C:\Scripts\")) {
     New-Item -Path "C:\Scripts\" -ItemType Directory -Force
     Write-Host "Created C:\Scripts\ directory" -ForegroundColor Green
@@ -41,12 +54,6 @@ if (-not (Test-Path -Path "C:\Scripts\")) {
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $reportPath = "C:\Scripts\sysinfo_$timestamp.txt"
 
-# Combine all the individual reports into one main report.
-$combinedReport = $networkDiagnosticsReport + "`n" +
-                  $sessionInfoReport + "`n" +
-                  $hardwareInfoReport + "`n" +
-                  $appInfoReport
-
 # Export the combined report to the desired path.
-$combinedReport | Out-File $reportPath -Encoding utf8
+$output | Out-File $reportPath -Encoding utf8
 Write-Host "Report exported to $reportPath" -ForegroundColor Cyan
