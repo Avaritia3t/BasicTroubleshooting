@@ -1,14 +1,14 @@
-﻿# Script written for PowerShell 7
-
-function Get-ApplicationInfo {
-    if ($PSVersionTable.PSVersion.Major -lt 7) {
+# Script written for PowerShell 7
+if ($PSVersionTable.PSVersion.Major -lt 7) {
         Write-Error "This script requires PowerShell 7 or higher."
         exit
     }
 
-    # Initialize the report array
-    $applicationReport = @()
+# Initialize the report array
+$applicationReport = @()
 
+function Get-ApplicationInfo {
+    
     # Function to get the list of all installed applications and versions
     function Get-InstalledApplications {
         Write-Host "Retrieving list of installed applications and versions..." -ForegroundColor Yellow
@@ -30,8 +30,7 @@ function Get-ApplicationInfo {
 
         foreach ($app in $uwpApps + $wingetApps) {
             $appMessage = "Application: $($app.Name), Version: $($app.Version)"
-            $applicationReport += $appMessage
-            Write-Host $appMessage
+            $script:applicationReport += $appMessage
         }
 
         Write-Host "Installed applications retrieval completed." -ForegroundColor Green
@@ -43,8 +42,7 @@ function Get-ApplicationInfo {
         $drivers = Get-CimInstance -ClassName Win32_PnPSignedDriver | Where-Object { $_.DriverVersion -ne $null }
         foreach ($driver in $drivers) {
             $driverMessage = "Driver: $($driver.DeviceName), Version: $($driver.DriverVersion)"
-            $applicationReport += $driverMessage
-            Write-Host $driverMessage
+            $script:applicationReport += $driverMessage
         }
         Write-Host "Installed drivers retrieval completed." -ForegroundColor Green
     }
@@ -55,8 +53,7 @@ function Get-ApplicationInfo {
         $services = Get-Service -ErrorAction SilentlyContinue | Where-Object { $_.Status -eq 'Running' }
         foreach ($service in $services) {
             $serviceMessage = "Service: $($service.DisplayName), Status: $($service.Status)"
-            $applicationReport += $serviceMessage
-            Write-Host $serviceMessage
+            $script:applicationReport += $serviceMessage
         }
         Write-Host "Active services retrieval completed." -ForegroundColor Green
     }
