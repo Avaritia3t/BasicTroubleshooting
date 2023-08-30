@@ -1,6 +1,4 @@
-﻿# Script written for PowerShell 7
-
-function Get-NetworkInfo {
+# Script written for PowerShell 7
 if ($PSVersionTable.PSVersion.Major -lt 7) {
     Write-Error "This script requires PowerShell 7 or higher."
     exit
@@ -9,10 +7,11 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 # Initialize the report array
 $report = @()
 
+function Get-NetworkInfo {
+
 # Function to check network connection
 function Check-NetworkConnection {
     Write-Host "Checking network connection..." -ForegroundColor Yellow
-
     $connectedNetworks = Get-NetConnectionProfile
     $networkProfile = ""
 
@@ -32,7 +31,6 @@ function Check-NetworkConnection {
     }
 
     $script:report += $networkProfile
-    Write-Host $networkProfile
     Write-Host "Network connection check completed." -ForegroundColor Green
 }
 
@@ -42,9 +40,31 @@ function Get-MacAddress {
     $mac = Get-NetAdapter | Where-Object { $_.Status -eq "Up" } | Select-Object -ExpandProperty MacAddress -First 1
     $macMessage = "MAC Address: $mac"
     $script:report += $macMessage
-    Write-Host $macMessage
     Write-Host "MAC address retrieval completed." -ForegroundColor Green
 }
+
+# Function to get IP Address
+function Get-IPAddressInfo {
+    Write-Host "Retrieving IP address information..." -ForegroundColor Yellow
+
+    # Get IP addresses (excluding link-local and loopback addresses)
+    $ipAddresses = Get-NetIPAddress | Where-Object {
+        $_.IPAddress -notlike "fe80*" -and $_.IPAddress -notlike "127.*"
+    } | ForEach-Object {
+        "Interface Alias: $($_.InterfaceAlias), IP Address: $($_.IPAddress)"
+    }
+
+    if ($ipAddresses) {
+        $ipAddresses | ForEach-Object { Write-Host $_ -ForegroundColor Green }
+        return $ipAddresses
+    } else {
+        Write-Host "No IP address information found." -ForegroundColor Red
+    }
+    
+    $script:report += $ipAddresses
+    Write-Host "IP address retrieval completed." -ForegroundColor Green
+}
+
 
 # Function to check Internet connectivity
 function Test-InternetConnectivity {
@@ -64,7 +84,6 @@ function Test-InternetConnectivity {
     }
 
     $script:report += $connectivityMessage
-    Write-Host $connectivityMessage
     Write-Host "Internet connectivity check completed." -ForegroundColor Green
 }
 
@@ -78,7 +97,6 @@ function Perform-Traceroute {
 
     foreach ($hop in $hops) {
         $tracerouteMessages += $hop.Trim()
-        Write-Host $hop.Trim() | Out-Host
     }
 
     $script:report += $tracerouteMessages
@@ -99,7 +117,6 @@ function Check-DNSResolution {
     }
 
     $script:report += $dnsMessage
-    Write-Host $dnsMessage
     Write-Host "DNS resolution check completed." -ForegroundColor Green
 }
 
@@ -107,6 +124,7 @@ function Check-DNSResolution {
 # Call the functions
 Check-NetworkConnection
 Get-MacAddress
+Get-IPAddressInfo
 Test-InternetConnectivity
 Perform-Traceroute
 Check-DNSResolution
@@ -114,5 +132,5 @@ Check-DNSResolution
 # Return the report for use in BasicTroubleshooting Script
 
 return $script:report
-
 }
+
